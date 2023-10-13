@@ -31,6 +31,8 @@ import jakarta.inject.Inject
 import com.google.inject.Provider
 import jakarta.inject.Qualifier
 import javax.persistence.Column
+import javax.persistence.Embeddable
+import javax.persistence.Embedded
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.Table
@@ -88,6 +90,7 @@ internal class SchemaValidatorTest {
           addEntities(DbMissingColumnsTable::class)
           addEntities(DbNullableMismatchTable::class)
           addEntities(DbBadIdentifierTable::class)
+          addEntities(DbEmbeddableConsumer::class)
         }
       })
 
@@ -368,5 +371,24 @@ internal class SchemaValidatorTest {
 
     @Column
     var tbl6_database_camelcase: Int = 0
+  }
+
+  data class BoxedId(val id: String)
+
+  @Embeddable
+  class DbEmbeddable constructor(
+    @Column(name = "boxed_id")
+    var id: BoxedId
+  )
+
+  @Entity
+  @Table(name = "embeddable_consumer")
+  class DbEmbeddableConsumer() : DbUnsharded<DbEmbeddableConsumer>  {
+    @javax.persistence.Id
+    @GeneratedValue
+    override lateinit var id: Id<DbEmbeddableConsumer>
+
+    @Embedded
+    var embeddable: DbEmbeddable? = null
   }
 }
